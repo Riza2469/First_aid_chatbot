@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <title>Chatbot UI</title>
+    <style>
+        * {
+    font-size: 1.3vw;
+    font-family: "Epilogue", sans-serif;
+  }
+  
+  html {
+    --scrollbarBG: #fff;
+    --thumbBG: #90a4ae;
+  }
+  
+  body {
+    background: #fffbfb;
+  }
+  body .card {
+    height: 45vw;
+    width: 35vw;
+    background-color: white;
+    margin-left: 30vw;
+    margin-top: 5vw;
+    box-shadow: 2vw 2vw 12vw 3vw #ccc;
+  }
+  body .card #header {
+    height: 5vw;
+    background: #000;
+    padding: 0vw;
+  }
+  body .card #header h1 {
+    color: #fff;
+    font-size: 2vw;
+    font-family: "Finger Paint", cursive;
+    padding: 1vw;
+  }
+  body .card #message-section::-webkit-scrollbar {
+    width: 10px;
+  }
+  body .card #message-section {
+    height: 32vw;
+    padding: 0 2.5vw;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--thumbBG) var(--scrollbarBG);
+  }
+  body .card #message-section::-webkit-scrollbar-track {
+    background: var(--scrollbarBG);
+  }
+  body .card #message-section::-webkit-scrollbar-thumb {
+    background-color: var(--thumbBG);
+    border-radius: 6px;
+    border: 3px solid var(--scrollbarBG);
+  }
+  body .card #message-section #bot,
+  body .card #message-section #user {
+    position: relative;
+    bottom: 0;
+    min-height: 1.5vw;
+    /* border: 0.15vw solid #060606; */
+    background-color: #ccc9c9;
+    border-radius: 0px 1.5vw 1.5vw 1.8vw;
+    padding: 1vw;
+    margin: 1.5vw 0;
+    box-shadow: 0vw 0vw 5vw 1vw #ebe7e7;
+  }
+  body .card #message-section #user {
+    border: 1.5px solid #7f1919;
+    border-radius: 1.5vw 0vw 1.5vw 1.8vw;
+    background-color: #050505;
+    float: right;
+    color: white;
+    box-shadow: 0vw 0vw 5vw 1vw #ebe7e7;
+  }
+  body .card #message-section #user #user-response {
+    color: #fff;
+  }
+  body .card #message-section .message {
+    color: #000;
+    clear: both;
+    line-height: 1.2vw;
+    font-size: 1.2vw;
+    padding: 8px;
+    position: relative;
+    margin: 8px 0;
+    max-width: 85%;
+    word-wrap: break-word;
+    z-index: 2;
+  }
+  body .card #input-section {
+    z-index: 1;
+    padding: 0 2.5vw;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    overflow: hidden;
+    height: 6vw;
+    width: 100%;
+  }
+  body .card #input-section input {
+    color: #000;
+    min-width: 0.5vw;
+    outline: none;
+    height: 5vw;
+    width: 26vw;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: solid #000 0.1vw;
+  }
+  body .card .send {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    flex: 0 0 auto;
+    margin-left: 1.4vw;
+    margin-right: 0vw;
+    padding: 0;
+    position: relative;
+    outline: none;
+  }
+  body .card .send .circle {
+    position: relative;
+    width: 4.8vw;
+    height: 4.8vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  body .card .send .circle i {
+    font-size: 3vw;
+    margin-left: -1vw;
+    margin-top: 1vw;
+  }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div id="header">
+          <h1>MedBot</h1>
+        </div>
+        <div id="message-section">
+          <div class="message" id="bot"><span id="bot-response">Hello.. I'm listening! Go on..</span></div>
+        </div>
+        <div id="input-section"> 
+          <input id="input" type="text" placeholder="Type a message" autocomplete="off" autofocus="autofocus" onkeydown="handleKeyDown(event)"/>
+          <button class="send" onclick="sendMessage()" style="font-size: 24px;"><i class="material-icons">&#xe163;</i>
+            <!-- <div class="circle"><i class="zmdi zmdi-mail-send"></i></div> -->
+          </button>
+        </div>
+      </div>
+    
+    <script>
+        function sendMessage() {
+            // Get user input
+            var userInput = document.getElementById("input").value;
+
+            // Add user message to chat history
+            addToChatHistory(userInput,true);
+
+            // TODO: Send the user input to the chatbot backend and get the response
+            fetch('http://127.0.0.1:5000/api/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userMessage: userInput,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Get chatbot response from the backend
+                var botResponse =  data.chatbotResponse;
+
+                // Add chatbot response to chat history
+                addToChatHistory(botResponse, false);
+
+                // Clear user input
+                document.getElementById("input").value = "";
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function handleKeyDown(event) {
+            // Detect Enter key press (key code 13)
+            if (event.keyCode === 13) {
+                // Trigger sendMessage function on Enter key press
+                sendMessage();
+                event.preventDefault();
+            }
+        }
+
+        function addToChatHistory(message, isUser) {
+            var chatHistory = document.getElementById("message-section");
+            var messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+
+            if (isUser) { 
+                messageDiv.id = "user";
+            } else {
+                messageDiv.id = "bot";
+            }
+
+            var messageContent = document.createElement("span");
+            messageContent.textContent = message;
+            messageDiv.appendChild(messageContent);
+
+            chatHistory.appendChild(messageDiv);
+
+            var scroll = document.getElementById("message-section");
+            scroll.scrollTop = scroll.scrollHeight;
+        }
+
+    </script>
+</body>
+</html>
